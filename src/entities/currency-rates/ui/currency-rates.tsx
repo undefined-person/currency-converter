@@ -6,9 +6,11 @@ import { formatCurrency } from '@/shared/utils/format-currency'
 import { cn } from '@/shared/utils/cn'
 
 import { useGetCurrencyRates } from '../model/hooks/use-get-currency-rates'
+import { useRates } from '@/app/providers/rates-provider/rates-provider'
 
 export function CurrencyRates({ className }: { className?: string }) {
-  const { currencyRates, error, getCurrencyRates, isLoading } = useGetCurrencyRates()
+  const { getCurrencyRates } = useGetCurrencyRates()
+  const { rates, isLoading, error } = useRates()
 
   useEffect(() => {
     getCurrencyRates()
@@ -38,7 +40,7 @@ export function CurrencyRates({ className }: { className?: string }) {
         </tr>
       </thead>
       <tbody>
-        {currencyRates.map((currency) => (
+        {rates.map((currency) => (
           <tr key={currency.ccy}>
             <td className="text-xl font-bold">{currency.ccy}</td>
             <td>{formatCurrency(currency.buy)}</td>

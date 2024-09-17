@@ -1,17 +1,14 @@
-import { useState } from 'react'
 import { fetchCurrentCurrencyRates } from '../api/fetch-currency-rates'
-import { Currency } from '../types/currency'
+import { useRates } from '@/app/providers/rates-provider/rates-provider'
 
 export const useGetCurrencyRates = () => {
-  const [currencyRates, setCurrencyRates] = useState<Currency[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { setRates, setIsLoading, setError } = useRates()
 
   const getCurrencyRates = async () => {
     setIsLoading(true)
     try {
       const response = await fetchCurrentCurrencyRates()
-      setCurrencyRates(response.data)
+      setRates(response.data)
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message)
@@ -23,5 +20,5 @@ export const useGetCurrencyRates = () => {
     }
   }
 
-  return { currencyRates, isLoading, error, getCurrencyRates }
+  return { getCurrencyRates }
 }
