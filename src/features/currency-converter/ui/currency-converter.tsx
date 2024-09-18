@@ -63,8 +63,6 @@ export function CurrencyConverter() {
   // TODO: DEBOUNCE
 
   const handleSwap = () => {
-    console.log('SWAP')
-
     const tempCurrency = fromCurrency
     const tempAmount = fromAmount
 
@@ -76,21 +74,21 @@ export function CurrencyConverter() {
   }
 
   if (isLoadingCurrencies || isLoadingRates) {
-    return <Skeleton className="w-44 h-32" />
+    return <Skeleton className="h-32 w-44" />
   }
 
   return (
     <div className="bg-white shadow-lg rounded-lg w-[560px] m-auto py-10 px-6 flex flex-col gap-10">
       <h1 className="text-3xl font-bold">Currency Converter</h1>
-      <div>
-        <h2>Sell</h2>
-        <div className="flex items-center justify-between border border-gray-300 rounded-lg px-5 py-3 h-14 transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 hover:border-blue-300">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-xl font-semibold text-gray-600">Sell</h2>
+        <div className="flex items-center justify-between px-5 py-3 transition-colors border border-gray-300 rounded-lg h-14 focus:outline-none focus:ring-1 focus:ring-blue-500 hover:border-blue-300">
           <input type="number" className="flex-1 focus:outline-none" onChange={handleSellChange} value={fromAmount} />
           <Select
             options={fromCurrencyOptions}
             onChange={handleFromCurrencyChange}
             selectedOption={fromCurrency}
-            className="border-0 bg-transparent hover:border-none focus:ring-0"
+            className="bg-transparent border-0 hover:border-none focus:ring-0"
           />
         </div>
       </div>
@@ -102,15 +100,15 @@ export function CurrencyConverter() {
           />
         </svg>
       </Button>
-      <div>
-        <h2>Buy</h2>
-        <div className="flex items-center justify-between border border-gray-300 rounded-lg px-5 py-3 h-14 transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 hover:border-blue-300">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-xl font-semibold text-gray-600">Buy</h2>
+        <div className="flex items-center justify-between px-5 py-3 transition-colors border border-gray-300 rounded-lg h-14 focus:outline-none focus:ring-1 focus:ring-blue-500 hover:border-blue-300">
           <input type="number" className="flex-1 focus:outline-none" value={toAmount} onChange={handleBuyChange} />
           <Select
             options={toCurrencyOptions}
             onChange={handleToCurrencyChange}
             selectedOption={toCurrency}
-            className="border-0 bg-transparent hover:border-none focus:ring-0"
+            className="bg-transparent border-0 hover:border-none focus:ring-0"
           />
         </div>
       </div>
