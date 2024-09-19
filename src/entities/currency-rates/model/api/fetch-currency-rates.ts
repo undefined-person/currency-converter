@@ -1,10 +1,14 @@
 import { $api } from '@/shared/api/api'
 
-import type { Currency } from '../types/currency'
+type FetchCurrencyRatesResponse = {
+  date: string
+} & {
+  [currency: string]: Record<string, number>
+}
 
-export const fetchCurrentCurrencyRates = async () => {
+export const fetchCurrentCurrencyRates = async (currency: string) => {
   // add timeout to simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 1000))
 
-  return await $api.get<Currency[]>('')
+  return await $api.get<FetchCurrencyRatesResponse>(`/currencies/${currency}.json`)
 }

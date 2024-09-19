@@ -1,11 +1,11 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
 import { RateContextType } from './rates-context'
-import { Currency } from '@/entities/currency-rates'
+import { CurrencyRatesType } from '../types/currency'
 
 const RatesContext = createContext<RateContextType | undefined>(undefined)
 
 export const RatesProvider = ({ children }: { children: ReactNode }) => {
-  const [rates, setRates] = useState<Currency[]>([])
+  const [rates, setRates] = useState<CurrencyRatesType>({})
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

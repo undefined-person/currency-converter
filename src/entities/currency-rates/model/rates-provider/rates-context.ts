@@ -1,10 +1,8 @@
-import { Currency } from '@/entities/currency-rates'
-
 export type RateContextType = {
-  rates: Currency[]
+  rates: Record<string, number>
   isLoading: boolean
   error: string | null
-  setRates: (rates: Currency[]) => void
+  setRates: (rates: Record<string, number>) => void
   setIsLoading: (isLoading: boolean) => void
   setError: (error: string | null) => void
 }

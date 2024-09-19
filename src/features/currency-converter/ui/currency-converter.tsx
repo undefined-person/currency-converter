@@ -1,26 +1,46 @@
-import { ChangeEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import { useRates } from '@/app/providers/rates-provider/rates-provider'
 import { Option } from '@/shared/types/option'
-import { Select } from '@/shared/ui/select'
-import { Skeleton } from '@/shared/ui/skeleton'
 import { Button } from '@/shared/ui/button'
-import { formatCurrency } from '@/shared/utils/format-currency'
-import { useCurrencies } from '@/entities/currency'
-import { formatObjectToOptions } from '@/shared/utils/format-object-to-options'
+
+import { CurrencyLoader } from './currency-loader'
+import { CurrencyError } from './currency-error'
+import { CurrencyInput } from './currency-input'
+import { useCurrencyRates } from '../model/hooks/use-currency-rates'
+import { useCurrencyOptions } from '../model/hooks/use-currency-options'
 
 export function CurrencyConverter() {
-  const { rates, isLoading: isLoadingRates, error } = useRates()
-  const { currencies, isLoading: isLoadingCurrencies } = useCurrencies()
-
   const [fromCurrency, setFromCurrency] = useState<Option | null>(null)
   const [toCurrency, setToCurrency] = useState<Option | null>(null)
-
   const [fromAmount, setFromAmount] = useState<number>(0)
   const [toAmount, setToAmount] = useState<number>(0)
+  const [lastChanged, setLastChanged] = useState<'from' | 'to'>('from')
 
-  const [fromCurrencyOptions, setFromCurrencyOptions] = useState<Option[]>([])
-  const [toCurrencyOptions, setToCurrencyOptions] = useState<Option[]>([])
+  const {
+    fromCurrencyOptions,
+    toCurrencyOptions,
+    error: currencyError,
+    isLoading: isCurrencyLoading,
+  } = useCurrencyOptions()
+  const {
+    calculatedAmount,
+    error: ratesError,
+    isLoading: isCurrencyRatesLoading,
+  } = useCurrencyRates({
+    fromCurrency,
+    toCurrency,
+    fromAmount,
+    toAmount,
+    lastChanged,
+  })
+
+  useEffect(() => {
+    if (lastChanged === 'from') {
+      setToAmount(calculatedAmount)
+    } else {
+      setFromAmount(calculatedAmount)
+    }
+  }, [calculatedAmount, lastChanged])
 
   const handleFromCurrencyChange = (value: Option) => {
     setFromCurrency(value)
@@ -30,68 +50,43 @@ export function CurrencyConverter() {
     setToCurrency(value)
   }
 
-  useEffect(() => {
-    if (currencies) {
-      const options = formatObjectToOptions(currencies)
-      setFromCurrencyOptions(options)
-      setToCurrencyOptions(options)
-    }
-  }, [currencies])
-
-  const handleSellChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const value = Number(event.target.value)
-    setFromAmount(value)
-
-    const sellRate = rates.find((rate) => rate.ccy === fromCurrency?.value)?.sale
-
-    if (sellRate) {
-      setToAmount(formatCurrency(value * Number(sellRate)))
-    }
+  const handleSellChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFromAmount(Number(event.target.value))
+    setLastChanged('from')
   }
 
-  const handleBuyChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const value = Number(event.target.value)
-    setToAmount(value)
-
-    const buyRate = rates.find((rate) => rate.ccy === toCurrency?.value)?.buy
-
-    if (buyRate) {
-      setFromAmount(formatCurrency(value * Number(buyRate)))
-    }
+  const handleBuyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setToAmount(Number(event.target.value))
+    setLastChanged('to')
   }
-
-  // TODO: DEBOUNCE
 
   const handleSwap = () => {
-    const tempCurrency = fromCurrency
-    const tempAmount = fromAmount
-
     setFromCurrency(toCurrency)
-    setToCurrency(tempCurrency)
-
+    setToCurrency(fromCurrency)
     setFromAmount(toAmount)
-    setToAmount(tempAmount)
+    setToAmount(fromAmount)
+    setLastChanged(lastChanged === 'from' ? 'to' : 'from')
   }
 
-  if (isLoadingCurrencies || isLoadingRates) {
-    return <Skeleton className="h-32 w-44" />
+  if (isCurrencyLoading || isCurrencyRatesLoading) {
+    return <CurrencyLoader />
+  }
+
+  if (currencyError || ratesError) {
+    return <CurrencyError error={currencyError || ratesError || ''} />
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-lg w-[560px] m-auto py-10 px-6 flex flex-col gap-10">
+    <div className="bg-white shadow-lg rounded-lg w-[560px] py-10 px-6 flex flex-col gap-10 mt-24">
       <h1 className="text-3xl font-bold">Currency Converter</h1>
-      <div className="flex flex-col gap-2">
-        <h2 className="text-xl font-semibold text-gray-600">Sell</h2>
-        <div className="flex items-center justify-between px-5 py-3 transition-colors border border-gray-300 rounded-lg h-14 focus:outline-none focus:ring-1 focus:ring-blue-500 hover:border-blue-300">
-          <input type="number" className="flex-1 focus:outline-none" onChange={handleSellChange} value={fromAmount} />
-          <Select
-            options={fromCurrencyOptions}
-            onChange={handleFromCurrencyChange}
-            selectedOption={fromCurrency}
-            className="bg-transparent border-0 hover:border-none focus:ring-0"
-          />
-        </div>
-      </div>
+      <CurrencyInput
+        label="Sell"
+        amount={fromAmount}
+        currencyOptions={fromCurrencyOptions}
+        selectedCurrency={fromCurrency}
+        onAmountChange={handleSellChange}
+        onCurrencyChange={handleFromCurrencyChange}
+      />
       <Button aria-label="Swap currencies" onClick={handleSwap} className="mx-auto">
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256">
           <path
@@ -100,18 +95,14 @@ export function CurrencyConverter() {
           />
         </svg>
       </Button>
-      <div className="flex flex-col gap-2">
-        <h2 className="text-xl font-semibold text-gray-600">Buy</h2>
-        <div className="flex items-center justify-between px-5 py-3 transition-colors border border-gray-300 rounded-lg h-14 focus:outline-none focus:ring-1 focus:ring-blue-500 hover:border-blue-300">
-          <input type="number" className="flex-1 focus:outline-none" value={toAmount} onChange={handleBuyChange} />
-          <Select
-            options={toCurrencyOptions}
-            onChange={handleToCurrencyChange}
-            selectedOption={toCurrency}
-            className="bg-transparent border-0 hover:border-none focus:ring-0"
-          />
-        </div>
-      </div>
+      <CurrencyInput
+        label="Buy"
+        amount={toAmount}
+        currencyOptions={toCurrencyOptions}
+        selectedCurrency={toCurrency}
+        onAmountChange={handleBuyChange}
+        onCurrencyChange={handleToCurrencyChange}
+      />
     </div>
   )
 }

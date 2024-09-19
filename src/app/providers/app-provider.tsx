@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 
-import { RatesProvider } from './rates-provider/rates-provider'
 import { CurrenciesProvider } from '@/entities/currency'
+import { RatesProvider } from '@/entities/currency-rates'
 
 export function AppProvider({ children }: { children: ReactNode }) {
   return (

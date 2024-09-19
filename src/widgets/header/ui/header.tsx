@@ -1,9 +1,9 @@
-import { CurrencyRates } from '@/entities/currency-rates'
+import { CurrencyRatesToUAH } from '@/features/currency-rates-to-uah'
 
 export function Header() {
   return (
-    <header className="bg-white p-2">
-      <CurrencyRates className="ml-auto" />
+    <header className="flex items-center h-16 px-4 bg-white">
+      <CurrencyRatesToUAH />
     </header>
   )
 }
